@@ -1,0 +1,13 @@
+{
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "debug lldb",
+            "program": "${workspaceFolder}/build/MobaGameServer",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+        },
+    ],
+    "version": "2.0.0"
+}
