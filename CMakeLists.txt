@@ -6,6 +6,26 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_BUILD_TYPE Debug)
 
+# 複製lib
+function(copy_library build_dir lib_name)
+    if(APPLE)
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${CMAKE_CURRENT_SOURCE_DIR}/build/3rd/${build_dir}/${lib_name}.dylib"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+    elseif(UNIX)
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${CMAKE_CURRENT_SOURCE_DIR}/build/3rd/${build_dir}/${lib_name}.so"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+    elseif(WIN32)
+        add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${CMAKE_CURRENT_SOURCE_DIR}/build/3rd/${build_dir}/${lib_name}.dll"
+                "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
+    endif()
+endfunction()
+
 file(GLOB_RECURSE SOURCES "netbus/*.cpp" "netbus/*.cc" "netbus/*.c")
 
 add_executable(${PROJECT_NAME}  ${SOURCES}
@@ -22,22 +42,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/3
 
 target_link_libraries(${PROJECT_NAME} PRIVATE uv)
 
-if(APPLE)
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${CMAKE_CURRENT_SOURCE_DIR}/build/3rd/libuv/libuv.dylib"
-            "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-elseif(UNIX)
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${CMAKE_CURRENT_SOURCE_DIR}/build/3rd/libuv/libuv.so"
-            "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-elseif(WIN32)
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${CMAKE_CURRENT_SOURCE_DIR}/build/3rd/libuv/libuv.dll"
-            "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-endif()
+copy_library(libuv libuv)
 
 # hiredis
 add_subdirectory(3rd/hiredis)
@@ -46,22 +51,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/3
 
 target_link_libraries(${PROJECT_NAME} PRIVATE hiredis)
 
-if(APPLE)
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${CMAKE_CURRENT_SOURCE_DIR}/build/3rd/hiredis/libhiredisd.dylib"
-            "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-elseif(UNIX)
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${CMAKE_CURRENT_SOURCE_DIR}/build/3rd/hiredis/libhiredisd.so"
-            "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-elseif(WIN32)
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${CMAKE_CURRENT_SOURCE_DIR}/build/3rd/hiredis/libhiredisd.dll"
-            "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-endif()
+copy_library(hiredis libhiredisd)
 
 # mjson
 include_directories("${PROJECT_SOURCE_DIR}/3rd/mjson")
@@ -102,19 +92,4 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/3
 
 target_link_libraries(${PROJECT_NAME} PRIVATE libprotobuf)
 
-if(APPLE)
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${CMAKE_CURRENT_SOURCE_DIR}/build/3rd/protobuf/libprotobufd.dylib"
-            "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-elseif(UNIX)
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${CMAKE_CURRENT_SOURCE_DIR}/build/3rd/protobuf/libprotobufd.so"
-            "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-elseif(WIN32)
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${CMAKE_CURRENT_SOURCE_DIR}/build/3rd/protobuf/libprotobufd.dll"
-            "$<TARGET_FILE_DIR:${PROJECT_NAME}>")
-endif()
+copy_library(protobuf libprotobufd)
