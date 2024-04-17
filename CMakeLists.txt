@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_BUILD_TYPE Debug)
 
-# 複製lib
+# 複製lib的Function
 function(copy_library build_dir lib_name)
     if(APPLE)
         add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
@@ -26,14 +26,12 @@ function(copy_library build_dir lib_name)
     endif()
 endfunction()
 
-file(GLOB_RECURSE SOURCES "netbus/*.cpp" "netbus/*.cc" "netbus/*.c")
+file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.cc" "src/*.c")
 
 add_executable(${PROJECT_NAME}  ${SOURCES}
                                 ${MJSON_SOURCES} 
                                 ${CRYPTO_SOURCES} 
-                                ${HTTP_PARSER_SOURCES}
-                                ${PROTO_SRCS}
-                                ${PROTO_HDRS})
+                                ${HTTP_PARSER_SOURCES})
 
 # libuv
 add_subdirectory(3rd/libuv)
