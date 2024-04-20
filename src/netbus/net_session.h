@@ -3,6 +3,7 @@
 
 #include "session.h"
 #include "uv.h"
+
 #define RECV_LEN 4096
 
 enum class socket_type
@@ -10,6 +11,8 @@ enum class socket_type
     TCP_SOCKET,
     WS_SOCKET,
 };
+
+void init_session_allocer();
 
 class net_session : session
 {
@@ -19,8 +22,7 @@ class net_session : session
     int client_port;
 
     uv_shutdown_t shutdown_handle;
-    uv_write_t write_req;
-    uv_buf_t write_buf;
+    bool is_shutdown;
 
   public:
     char recv_buf[RECV_LEN];

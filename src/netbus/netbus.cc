@@ -67,6 +67,11 @@ netbus *netbus::instance()
     return &g_netbus;
 }
 
+void netbus::init()
+{
+    init_session_allocer();
+}
+
 void netbus::start_tcp_server(int port)
 {
     uv_tcp_t *listen = new uv_tcp_t();

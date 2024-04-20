@@ -26,7 +26,7 @@ function(copy_library build_dir lib_name)
     endif()
 endfunction()
 
-file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.cc" "src/*.c")
+file(GLOB_RECURSE SOURCES "src/*.cpp" "src/*.cc" "src/*.c" "src/*.h")
 
 add_executable(${PROJECT_NAME}  ${SOURCES}
                                 ${MJSON_SOURCES} 
