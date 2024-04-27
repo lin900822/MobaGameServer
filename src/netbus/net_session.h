@@ -29,6 +29,12 @@ class net_session : session
     int recved_len;
     int socket_type;
 
+    char *long_pkg;
+    int long_pkg_size;
+
+  public:
+    int is_ws_handshake;
+
   private:
     void init();
     void exit();

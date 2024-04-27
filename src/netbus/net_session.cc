@@ -7,6 +7,8 @@
 #include "net_session.h"
 #include "uv.h"
 
+#include "ws_protocol.h"
+
 #define SESSION_CACHE_CAPACITY 6000
 #define WRITE_REQ_CACHE_CAPCITY 4096
 
@@ -78,6 +80,9 @@ void net_session::init()
     this->client_port = 0;
     this->recved_len = 0;
     this->is_shutdown = false;
+    this->is_ws_handshake = 0;
+    this->long_pkg = nullptr;
+    this->long_pkg_size = 0;
 }
 
 void net_session::exit()
@@ -108,8 +113,19 @@ void net_session::send_data(unsigned char *body, int len)
     uv_write_t *write_req = (uv_write_t *)cache_alloc(write_req_allocer, sizeof(uv_write_t));
     uv_buf_t write_buf;
 
-    write_buf = uv_buf_init((char *)body, len);
-    uv_write(write_req, (uv_stream_t *)&this->tcp_handle, &write_buf, 1, on_after_write);
+    if (this->socket_type == (int)socket_type::WS_SOCKET && this->is_ws_handshake)
+    {
+        int ws_pkg_len;
+        unsigned char *ws_pkg = ws_protocol::ws_package_send_data(body, len, &ws_pkg_len);
+        write_buf = uv_buf_init((char *)ws_pkg, ws_pkg_len);
+        uv_write(write_req, (uv_stream_t *)&this->tcp_handle, &write_buf, 1, on_after_write);
+        ws_protocol::ws_free_send_pkg(ws_pkg);
+    }
+    else
+    {
+        write_buf = uv_buf_init((char *)body, len);
+        uv_write(write_req, (uv_stream_t *)&this->tcp_handle, &write_buf, 1, on_after_write);
+    }
 }
 
 const char *net_session::get_address(int *port)
