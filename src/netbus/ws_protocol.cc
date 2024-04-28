@@ -14,7 +14,7 @@
 // extern cache_allocer *wbuf_allocer;
 //
 static char *ws_magic = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-// base64(sha1(key + wb_migic))
+// base64(sha1(key + ws_magic))
 static char *ws_accept = "HTTP/1.1 101 Switching Protocols\r\n"
                          "Upgrade:websocket\r\n"
                          "Connection: Upgrade\r\n"
@@ -115,9 +115,9 @@ bool ws_protocol::ws_read_header(unsigned char *recv_data, int recv_len, int *pk
         return false;
     }
 
-    unsigned int data_len = recv_data[1] & 0x0000007f;
+    unsigned int data_len = recv_data[1] & 0x0000007f; // 取得Payload len (Mask 0111 1111)
     int head_size = 2;
-    if (data_len == 126)
+    if (data_len == 126) // 判斷Payload len是否需要擴充
     {
         head_size += 2;
         if (recv_len < head_size)
@@ -135,7 +135,7 @@ bool ws_protocol::ws_read_header(unsigned char *recv_data, int recv_len, int *pk
         }
 
         unsigned int low = recv_data[5] | (recv_data[4] << 8) | (recv_data[3] << 16) | (recv_data[2] << 24);
-        unsigned int hight = recv_data[9] | (recv_data[8] << 8) | (recv_data[7] << 16) | (recv_data[6] << 24);
+        unsigned int high = recv_data[9] | (recv_data[8] << 8) | (recv_data[7] << 16) | (recv_data[6] << 24);
         data_len = low;
     }
 
@@ -169,7 +169,7 @@ unsigned char *ws_protocol::ws_package_send_data(const unsigned char *raw_data, 
     // cache malloc
     unsigned char *data_buf = (unsigned char *)malloc(head_size + len);
     // unsigned char *data_buf = (unsigned char *)cache_alloc(wbuf_allocer, head_size + len);
-    data_buf[0] = 0x81; // 0x81 字符串 0x82 二进制;
+    data_buf[0] = 0x81; // 0x81 字串 0x82 二進位
     if (len <= 125)
     {
         data_buf[1] = len;

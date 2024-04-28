@@ -45,6 +45,7 @@ extern "C"
     {
         net_session *sess = (net_session *)handle->data;
 
+        // 判斷是否是長封包
         if (sess->recved_len < RECV_LEN)
         {
             *buf = uv_buf_init(sess->recv_buf + sess->recved_len, RECV_LEN - sess->recved_len);
@@ -110,7 +111,7 @@ extern "C"
             int pkg_size = 0;
             int head_size = 0;
 
-            if (pkg_data[0] == 0x88)
+            if (pkg_data[0] == 0x88) // 收到斷開連線請求
             {
                 sess->close();
                 break;
@@ -129,9 +130,10 @@ extern "C"
 
             unsigned char *raw_data = pkg_data + head_size;
             unsigned char *mask = raw_data - 4;
-            ws_protocol::ws_parser_recv_data(raw_data, mask, pkg_size - head_size);
+            int body_size = pkg_size - head_size;
+            ws_protocol::ws_parser_recv_data(raw_data, mask, body_size); // 解 Mask
 
-            on_recv_client_cmd((session *)sess, raw_data, pkg_size - head_size);
+            on_recv_client_cmd((session *)sess, raw_data, body_size);
 
             if (sess->recved_len > pkg_size)
             {
@@ -150,7 +152,7 @@ extern "C"
 
     static void on_recv_client_cmd(session *sess, unsigned char *body, int len)
     {
-        printf("client command!!!");
+        printf("client command!!!\n");
 
         sess->send_data(body, len);
     }

@@ -6,7 +6,7 @@
 // 02 00:27:37
 int main(int argc, char **argv)
 {
-    printf("Moba Game Server!\n");
+    printf("Moba Game Server!!!!\n");
 
     netbus::instance()->init();
 
