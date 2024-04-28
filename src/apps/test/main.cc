@@ -3,7 +3,6 @@
 
 #include "../../netbus/netbus.h"
 
-// 02 00:27:37
 int main(int argc, char **argv)
 {
     printf("Moba Game Server!!!!\n");

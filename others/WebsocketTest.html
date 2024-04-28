@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>WebSocket Test</title>
+  <button onclick="sendMessage()">Send Message</button>
+</head>
+
+<body>
+  <script>
+    var ws = new WebSocket('ws://127.0.0.1:8001/ws');
+
+    ws.onopen = function () {
+      alert("open");
+      ws.send('YEEEE');
+    };
+    ws.onmessage = function (ev) {
+      alert(ev.data);
+      console.log(ev.data)
+    };
+    ws.onclose = function (ev) {
+      alert("close");
+    };
+    ws.onerror = function (ev) {
+      console.log(ev);
+      alert("error");
+    };
+
+    function sendMessage() {
+      ws.send("Hellllllooooo");
+    }
+
+
+  </script>
+</body>
+
+</html>

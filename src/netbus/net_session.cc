@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <new>
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,13 +8,18 @@
 #include "net_session.h"
 #include "uv.h"
 
+#include "tp_protocol.h"
 #include "ws_protocol.h"
 
 #define SESSION_CACHE_CAPACITY 6000
 #define WRITE_REQ_CACHE_CAPCITY 4096
 
+#define WBUF_CACHE_CAPCITY 1024
+#define CMD_CACHE_SIZE 1024
+
 static cache_allocer *session_allocer = nullptr;
 static cache_allocer *write_req_allocer = nullptr;
+cache_allocer *wbuf_allocer = nullptr;
 
 void init_session_allocer()
 {
@@ -25,6 +31,11 @@ void init_session_allocer()
     if (write_req_allocer == nullptr)
     {
         write_req_allocer = create_cache_allocer(WRITE_REQ_CACHE_CAPCITY, sizeof(uv_write_t));
+    }
+
+    if (wbuf_allocer == nullptr)
+    {
+        wbuf_allocer = create_cache_allocer(WBUF_CACHE_CAPCITY, CMD_CACHE_SIZE);
     }
 }
 
@@ -113,18 +124,29 @@ void net_session::send_data(unsigned char *body, int len)
     uv_write_t *write_req = (uv_write_t *)cache_alloc(write_req_allocer, sizeof(uv_write_t));
     uv_buf_t write_buf;
 
-    if (this->socket_type == (int)socket_type::WS_SOCKET && this->is_ws_handshake)
+    if (this->socket_type == (int)socket_type::WS_SOCKET)
     {
-        int ws_pkg_len;
-        unsigned char *ws_pkg = ws_protocol::ws_package_send_data(body, len, &ws_pkg_len);
-        write_buf = uv_buf_init((char *)ws_pkg, ws_pkg_len);
-        uv_write(write_req, (uv_stream_t *)&this->tcp_handle, &write_buf, 1, on_after_write);
-        ws_protocol::ws_free_send_pkg(ws_pkg);
+        if (this->is_ws_handshake) // 已握手 以Websocket協議發過去
+        {
+            int ws_pkg_len;
+            unsigned char *ws_pkg = ws_protocol::ws_package_send_data(body, len, &ws_pkg_len);
+            write_buf = uv_buf_init((char *)ws_pkg, ws_pkg_len);
+            uv_write(write_req, (uv_stream_t *)&this->tcp_handle, &write_buf, 1, on_after_write);
+            ws_protocol::ws_free_send_pkg(ws_pkg);
+        }
+        else // 未握手 不處理直接發過去
+        {
+            write_buf = uv_buf_init((char *)body, len);
+            uv_write(write_req, (uv_stream_t *)&this->tcp_handle, &write_buf, 1, on_after_write);
+        }
     }
-    else
+    else // TCP
     {
-        write_buf = uv_buf_init((char *)body, len);
+        int tp_pkg_len;
+        unsigned char *tp_pkg = tp_protocol::package(body, len, &tp_pkg_len);
+        write_buf = uv_buf_init((char *)tp_pkg, tp_pkg_len);
         uv_write(write_req, (uv_stream_t *)&this->tcp_handle, &write_buf, 1, on_after_write);
+        tp_protocol::release_package(tp_pkg);
     }
 }
 

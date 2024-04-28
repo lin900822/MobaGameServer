@@ -11,10 +11,10 @@
 #include <cstdlib>
 #include <cstring>
 
-// extern cache_allocer *wbuf_allocer;
-//
-static char *ws_magic = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+extern cache_allocer *wbuf_allocer;
+
 // base64(sha1(key + ws_magic))
+static char *ws_magic = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 static char *ws_accept = "HTTP/1.1 101 Switching Protocols\r\n"
                          "Upgrade:websocket\r\n"
                          "Connection: Upgrade\r\n"
@@ -166,9 +166,9 @@ unsigned char *ws_protocol::ws_package_send_data(const unsigned char *raw_data, 
         head_size += 8;
         return nullptr;
     }
-    // cache malloc
-    unsigned char *data_buf = (unsigned char *)malloc(head_size + len);
-    // unsigned char *data_buf = (unsigned char *)cache_alloc(wbuf_allocer, head_size + len);
+
+    unsigned char *data_buf = (unsigned char *)cache_alloc(wbuf_allocer, head_size + len);
+
     data_buf[0] = 0x81; // 0x81 字串 0x82 二進位
     if (len <= 125)
     {
@@ -189,7 +189,5 @@ unsigned char *ws_protocol::ws_package_send_data(const unsigned char *raw_data, 
 
 void ws_protocol::ws_free_send_pkg(unsigned char *ws_pkg)
 {
-    // cache free
-    free(ws_pkg);
-    // cache_free(wbuf_allocer, ws_pkg);
+    cache_free(wbuf_allocer, ws_pkg);
 }

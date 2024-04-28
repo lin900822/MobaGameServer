@@ -4,6 +4,7 @@
 
 #include "net_session.h"
 #include "session.h"
+#include "tp_protocol.h"
 #include "uv.h"
 #include "ws_protocol.h"
 
@@ -15,6 +16,7 @@ extern "C"
     static void on_alloc_buf(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
     static void on_after_read(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
     static void on_recv_ws_data(net_session *sess);
+    static void on_recv_tcp_data(net_session *sess);
     static void on_recv_client_cmd(session *sess, unsigned char *body, int len);
 
     // 當有新的連線接入
@@ -99,6 +101,7 @@ extern "C"
         }
         else // 普通TCP協議
         {
+            on_recv_tcp_data(sess);
         }
     }
 
@@ -117,7 +120,6 @@ extern "C"
                 break;
             }
 
-            // pkg_size - head_size = body_size;
             if (!ws_protocol::ws_read_header(pkg_data, sess->recved_len, &pkg_size, &head_size))
             {
                 break;
@@ -132,6 +134,45 @@ extern "C"
             unsigned char *mask = raw_data - 4;
             int body_size = pkg_size - head_size;
             ws_protocol::ws_parser_recv_data(raw_data, mask, body_size); // 解 Mask
+
+            on_recv_client_cmd((session *)sess, raw_data, body_size);
+
+            if (sess->recved_len > pkg_size)
+            {
+                memmove(pkg_data, pkg_data + pkg_size, sess->recved_len - pkg_size);
+            }
+            sess->recved_len -= pkg_size;
+
+            if (sess->recved_len == 0 && sess->long_pkg != nullptr)
+            {
+                free(sess->long_pkg);
+                sess->long_pkg = nullptr;
+                sess->long_pkg_size = 0;
+            }
+        }
+    }
+
+    static void on_recv_tcp_data(net_session *sess)
+    {
+        unsigned char *pkg_data = (unsigned char *)((sess->long_pkg != nullptr) ? sess->long_pkg : sess->recv_buf);
+
+        while (sess->recved_len > 0)
+        {
+            int pkg_size = 0;
+            int head_size = 0;
+
+            if (!tp_protocol::read_header(pkg_data, sess->recved_len, &pkg_size, &head_size))
+            {
+                break;
+            }
+
+            if (sess->recved_len < pkg_size)
+            {
+                break;
+            }
+
+            unsigned char *raw_data = pkg_data + head_size;
+            int body_size = pkg_size - head_size;
 
             on_recv_client_cmd((session *)sess, raw_data, body_size);
 
