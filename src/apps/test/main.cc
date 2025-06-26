@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../../netbus/netbus.h"
+#include "../../netbus/netbus.hh"
 
 int main(int argc, char **argv)
 {

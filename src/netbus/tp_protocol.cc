@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "tp_protocol.h"
+#include "tp_protocol.hh"
 
 #include "../utils/cache_alloc.h"
 extern cache_allocer *wbuf_allocer;

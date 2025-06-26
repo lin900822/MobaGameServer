@@ -1,7 +1,7 @@
 #ifndef __NET_SESSION_H__
 #define __NET_SESSION_H__
 
-#include "session.h"
+#include "session.hh"
 #include "uv.h"
 
 #define RECV_LEN 4096

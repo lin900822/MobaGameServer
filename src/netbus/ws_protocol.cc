@@ -1,6 +1,6 @@
-#include "ws_protocol.h"
+#include "ws_protocol.hh"
 #include "http_parser.h"
-#include "session.h"
+#include "session.hh"
 
 #include "../../3rd/crypto/base64_encoder.h"
 #include "../../3rd/crypto/sha1.h"

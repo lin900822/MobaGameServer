@@ -2,13 +2,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "net_session.h"
-#include "session.h"
-#include "tp_protocol.h"
+#include "net_session.hh"
+#include "session.hh"
+#include "tp_protocol.hh"
 #include "uv.h"
-#include "ws_protocol.h"
+#include "ws_protocol.hh"
 
-#include "netbus.h"
+#include "netbus.hh"
 
 extern "C"
 {

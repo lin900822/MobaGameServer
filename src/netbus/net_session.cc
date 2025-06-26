@@ -5,11 +5,11 @@
 #include <string.h>
 
 #include "../utils/cache_alloc.h"
-#include "net_session.h"
+#include "net_session.hh"
 #include "uv.h"
 
-#include "tp_protocol.h"
-#include "ws_protocol.h"
+#include "tp_protocol.hh"
+#include "ws_protocol.hh"
 
 #define SESSION_CACHE_CAPACITY 6000
 #define WRITE_REQ_CACHE_CAPCITY 4096
